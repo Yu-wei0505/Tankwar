@@ -1,9 +1,8 @@
 package com.udemy.tankwar;
 
-import javax.swing.*;
 import java.awt.*;
 
-public class Wall {
+class Wall {
 
     private int x;
 
@@ -13,15 +12,24 @@ public class Wall {
 
     private int brick;
 
-    public Wall(int x, int y,boolean horizontal ,int brick) {
+    private final Image brickImage;
+
+     Wall(int x, int y,boolean horizontal ,int brick) {
+        this.brickImage= Tools.getImage("brick.png");
         this.x = x;
         this.y = y;
         this.horizontal=horizontal;
         this.brick = brick;
     }
 
-    public void draw(Graphics g){
-        Image brickImage= Tools.getImage("brick.png");
+     Rectangle getRectangle(){
+        return horizontal ? new Rectangle(x,y,brick * brickImage.getWidth(null),
+                brickImage.getHeight(null)) :
+                new Rectangle(x,y,brickImage.getWidth(null),
+                        brick * brickImage.getHeight(null));
+    }
+
+     void draw(Graphics g){
         if (horizontal){
             for (int i=0;i<brick;i++){
                 g.drawImage(brickImage,x+i*brickImage.getWidth(null),y,null);

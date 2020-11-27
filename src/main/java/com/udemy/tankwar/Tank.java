@@ -1,43 +1,28 @@
 package com.udemy.tankwar;
 
-import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
-public class Tank {
+class Tank {
 
     private  int x;
     private  int y;
     private  Direction direction;
     private boolean enemy;
 
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public int getX(){
-        return this.x;
-    }
-    public int getY(){
-        return this.y;
-    }
-
-    public Tank(int x, int y, Direction direction) {
+     Tank(int x, int y, Direction direction) {
         this(x,y,direction,false);
     }
 
-    public Tank(int x, int y, Direction direction, boolean enemy) {
+     Tank(int x, int y, Direction direction, boolean enemy) {
         this.x = x;
         this.y = y;
         this.direction = direction;
         this.enemy = enemy;
     }
 
-    void move(){
+    private void move(){
         if (this.stopped) return;
         switch (direction){
             case UP:
@@ -93,14 +78,38 @@ public class Tank {
     }
 
     void draw(Graphics g){
+        int oldX=x, oldY=y;
+
         this.determineDirection();
         this.move();
-        g.drawImage(this.getImage(),this.x,this.y,null);
+
         if (x<0) x=0;
         else if (x>800-getImage().getWidth(null)) x=800-getImage().getWidth(null);
         if (y<0) y=0;
         else if (y>600-getImage().getHeight(null)) y=600-getImage().getHeight(null);
 
+        Rectangle rec=this.getRectangle();
+        for (Wall wall : GameClient.getInstance().getWalls()){
+          if (rec.intersects(wall.getRectangle())){
+              x=oldX;
+              y=oldY;
+              break;
+          }
+        }
+
+        for (Tank tank:GameClient.getInstance().getEnemyTanks()){
+            if (rec.intersects(tank.getRectangle())){
+                x=oldX;
+                y=oldY;
+                break;
+            }
+        }
+        g.drawImage(this.getImage(),this.x,this.y,null);
+
+    }
+
+    private Rectangle getRectangle(){
+        return new Rectangle(x,y,getImage().getWidth(null),getImage().getHeight(null));
     }
 
     private boolean up;
@@ -108,7 +117,7 @@ public class Tank {
     private boolean right;
     private boolean left;
 
-    public void keyPressed(KeyEvent e) {
+    void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()){
             case KeyEvent.VK_UP:up=true; break;
             case KeyEvent.VK_DOWN:down=true; break;
@@ -136,7 +145,7 @@ public class Tank {
 
     }
 
-    public void keyReleased(KeyEvent e) {
+    void keyReleased(KeyEvent e) {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_UP:
                 up = false;
