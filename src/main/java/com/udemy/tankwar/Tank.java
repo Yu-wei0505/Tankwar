@@ -96,6 +96,11 @@ public class Tank {
         this.determineDirection();
         this.move();
         g.drawImage(this.getImage(),this.x,this.y,null);
+        if (x<0) x=0;
+        else if (x>800-getImage().getWidth(null)) x=800-getImage().getWidth(null);
+        if (y<0) y=0;
+        else if (y>600-getImage().getHeight(null)) y=600-getImage().getHeight(null);
+
     }
 
     private boolean up;
