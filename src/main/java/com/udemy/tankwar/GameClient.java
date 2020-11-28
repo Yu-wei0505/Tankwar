@@ -20,18 +20,24 @@ public class GameClient extends JComponent {
 
     private List<Tank> enemyTanks;
     private List<Wall> walls;
+    private List<Missile> missiles;
 
-     List<Wall> getWalls() {
-        return walls;
+    List<Wall> getWalls() {
+         return walls;
     }
 
-     List<Tank> getEnemyTanks() {
-        return enemyTanks;
+    List<Tank> getEnemyTanks() {
+         return enemyTanks;
+    }
+
+    List<Missile> getMissiles() {
+        return missiles;
     }
 
     private GameClient(){
-        this.playerTank=new Tank(400,100,Direction.DOWN);
-        this.enemyTanks= new ArrayList<>(12);
+        this.playerTank = new Tank(400,100,Direction.DOWN);
+        this.enemyTanks = new ArrayList<>(12);
+        this.missiles = new ArrayList<>();
         this.walls= Arrays.asList(
                 new Wall(200,140,true,15),
                 new Wall(200,540,true,15),
@@ -40,7 +46,7 @@ public class GameClient extends JComponent {
         );
         for (int i=0 ;i<3;i++) {
             for (int j = 0; j < 4; j++) {
-                this.enemyTanks.add(new Tank(200 + 80 * j, 400 + 40 * i, Direction.UP,true));
+                this.enemyTanks.add(new Tank(200 + 120 * j, 400 + 40 * i, Direction.UP,true));
             }
         }
         this.setPreferredSize(new Dimension(800,600));
@@ -57,13 +63,16 @@ public class GameClient extends JComponent {
         for (Wall w:walls){
             w.draw(g);
         }
+        for (Missile m : missiles){
+            m.draw(g);
+        }
     }
 
     public static void main(String[] args) {
         JFrame frame=new JFrame();
         frame.setTitle("First tank war");
         frame.setIconImage(new ImageIcon("assets/images/icon.png").getImage());
-        final GameClient client= new GameClient();
+        final GameClient client= GameClient.getInstance();
         client.repaint();
         frame.add(client);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
