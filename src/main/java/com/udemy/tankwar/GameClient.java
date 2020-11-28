@@ -69,6 +69,7 @@ public class GameClient extends JComponent {
     }
 
     public static void main(String[] args) {
+        com.sun.javafx.application.PlatformImpl.startup(()->{});
         JFrame frame=new JFrame();
         frame.setTitle("First tank war");
         frame.setIconImage(new ImageIcon("assets/images/icon.png").getImage());
