@@ -12,7 +12,7 @@ public class GameClient extends JComponent {
 
     private static final GameClient INSTANCE= new GameClient();
 
-     static GameClient getInstance(){
+    static GameClient getInstance(){
         return INSTANCE;
     }
 
@@ -21,6 +21,11 @@ public class GameClient extends JComponent {
     private List<Tank> enemyTanks;
     private List<Wall> walls;
     private List<Missile> missiles;
+    private List<Explosion> explosions;
+
+    void addExplosion(Explosion explosion){
+        explosions.add(explosion);
+    }
 
     synchronized void add(Missile missile){
         missiles.add(missile);
@@ -43,19 +48,20 @@ public class GameClient extends JComponent {
     }
 
     private GameClient(){
-        this.playerTank = new Tank(400,100,Direction.DOWN);
+        this.playerTank = new Tank(400, 100, Direction.DOWN);
         this.missiles = new ArrayList<>();
-        this.walls= Arrays.asList(
+        this.explosions = new ArrayList<>();
+        this.walls = Arrays.asList(
                 new Wall(200,140,true,15),
                 new Wall(200,540,true,15),
                 new Wall(100,80,false,15),
                 new Wall(700,80,false,15)
         );
-        this.initEmenyTanks();
+        this.initEnemyTank();
         this.setPreferredSize(new Dimension(800,600));
     }
 
-    private void initEmenyTanks() {
+    private void initEnemyTank() {
         this.enemyTanks = new ArrayList<>(12);
         for (int i=0 ;i<3;i++) {
             for (int j = 0; j < 4; j++) {
@@ -72,7 +78,7 @@ public class GameClient extends JComponent {
 
         enemyTanks.removeIf(t -> !t.isLive());
         if (enemyTanks.isEmpty()){
-            this.initEmenyTanks();
+            this.initEnemyTank();
         }
         for (Tank t:enemyTanks){
             t.draw(g);
@@ -84,6 +90,11 @@ public class GameClient extends JComponent {
         missiles.removeIf(m -> !m.isLive());
         for (Missile m : missiles){
             m.draw(g);
+        }
+
+        explosions.removeIf(e -> !e.isLive());
+        for (Explosion e : explosions){
+            e.draw(g);
         }
     }
 
