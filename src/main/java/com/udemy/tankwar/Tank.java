@@ -59,8 +59,9 @@ class Tank {
 
     void draw(Graphics g) {
         int oldX = x, oldY = y;
-
-        this.determineDirection();
+        if(!this.enemy) {
+            this.determineDirection();
+        }
         this.move();
 
         if (x < 0) x = 0;
@@ -78,12 +79,27 @@ class Tank {
         }
 
         for (Tank tank : GameClient.getInstance().getEnemyTanks()) {
-            if (rec.intersects(tank.getRectangle())) {
+            if (tank != this && rec.intersects(tank.getRectangle())) {
                 x = oldX;
                 y = oldY;
                 break;
             }
         }
+
+        if (this.enemy && rec.intersects(GameClient.getInstance()
+                .getPlayerTank().getRectangle())){
+            x = oldX;
+            y = oldY;
+        }
+        if(!enemy){
+            g.setColor(Color.WHITE);
+            g.fillRect(x,y-10,this.getImage().getWidth(null),10);
+
+            g.setColor(Color.RED);
+            int width = Hp * this.getImage().getWidth(null) / 100;
+            g.fillRect(x,y-10,width,10);
+        }
+
         g.drawImage(this.getImage(), this.x, this.y, null);
 
     }
@@ -120,6 +136,9 @@ class Tank {
             case KeyEvent.VK_D:
                 threeFire();
                 break;
+            case KeyEvent.VK_F2:
+                GameClient.getInstance().restart();
+                break;
 
         }
     }
@@ -128,7 +147,7 @@ class Tank {
     private void fire() {
         Missile missile = new Missile(x + getImage().getWidth(null) / 2 - 6,
                 y + getImage().getHeight(null) / 2 - 6, enemy, direction);
-        GameClient.getInstance().getMissiles().add(missile);
+        GameClient.getInstance().add(missile);
 
         Tools.playAudio("shoot.wav");
     }
@@ -138,7 +157,7 @@ class Tank {
             Direction direction = Direction.values()[i];
             Missile missile = new Missile(x + getImage().getWidth(null) / 2 - 6,
                     y + getImage().getHeight(null) / 2 - 6, enemy, direction);
-            GameClient.getInstance().getMissiles().add(missile);
+            GameClient.getInstance().add(missile);
         }
         String audioFile = new Random().nextBoolean() ? "supershoot.aiff" : "supershoot.wav";
         Tools.playAudio(audioFile);
@@ -150,7 +169,7 @@ class Tank {
         for(Direction direction:Direction.values()) {
             Missile missile = new Missile(x + getImage().getWidth(null) / 2 - 6,
                     y + getImage().getHeight(null) / 2 - 6, enemy, direction);
-            GameClient.getInstance().getMissiles().add(missile);
+            GameClient.getInstance().add(missile);
         }
         String audioFile = new Random().nextBoolean() ? "supershoot.aiff" : "supershoot.wav";
         Tools.playAudio(audioFile);
@@ -192,4 +211,19 @@ class Tank {
         }
     }
 
+    private final Random random = new Random();
+
+    private int step = new Random().nextInt(12) + 3;
+
+    void actRandomly() {
+        Direction[] dirs = Direction.values();
+        if (step == 0) {
+            step = random.nextInt(12) + 3;
+            this.direction = dirs[random.nextInt(dirs.length)];
+            if (random.nextBoolean()) {
+                this.fire();
+            }
+        }
+        step--;
+    }
 }
