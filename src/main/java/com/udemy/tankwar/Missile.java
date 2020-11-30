@@ -42,7 +42,7 @@ class Missile {
 
     void draw(Graphics g) {
         move();
-        if (x < 0 || x > 800 || y < 0 || y > 600) {
+        if (x < 0 || x > GameClient.WIDTH || y < 0 || y > GameClient.HEIGHT) {
             this.live=false;
             return;
         }
@@ -55,7 +55,7 @@ class Missile {
         }
         if (enemy){
             Tank playTank = GameClient.getInstance().getPlayerTank();
-            if (rectangle.intersects(playTank.getRectangle())) {
+            if (rectangle.intersects(playTank.getRectangleForHitDetection())) {
                 addExplosion();
                 playTank.setHp(playTank.getHp() - 20);
                 if (playTank.getHp()<=0){
@@ -66,7 +66,7 @@ class Missile {
         }
         else {
             for (Tank tank: GameClient.getInstance().getEnemyTanks()){
-                if (rectangle.intersects(tank.getRectangle())){
+                if (rectangle.intersects(tank.getRectangleForHitDetection())){
                     addExplosion();
                     tank.setLive(false);
                     this.setLive(false);
