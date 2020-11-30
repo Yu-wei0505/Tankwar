@@ -1,11 +1,15 @@
 package com.udemy.tankwar;
 
-
+import com.udemy.tankwar.Save.Position;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.Random;
 
 class Tank {
+
+    Position getPosition(){
+        return new Position(x,y,direction);
+    }
 
     private static final int MOVE_SPEED = 5;
     private int x;
@@ -13,14 +17,15 @@ class Tank {
     private Direction direction;
     private boolean enemy;
     private boolean live =true;
-    private int Hp = 100;
+    private static final int Max_Hp = 100;
+    private int hp = Max_Hp;
 
-    public int getHp() {
-        return Hp;
+    int getHp() {
+        return hp;
     }
 
-    public void setHp(int hp) {
-        Hp = hp;
+    void setHp(int hp) {
+        this.hp = hp;
     }
 
     boolean isLive() {
@@ -37,6 +42,10 @@ class Tank {
 
     Tank(int x, int y, Direction direction) {
         this(x, y, direction, false);
+    }
+
+    Tank(Position position,boolean enemy){
+        this(position.getX(),position.getY(),position.getDirection(),enemy);
     }
 
     Tank(int x, int y, Direction direction, boolean enemy) {
@@ -57,17 +66,25 @@ class Tank {
         return direction.getImage(prefix+"tank");
     }
 
+    boolean isDying(){
+        return this.hp <= Max_Hp * 0.2;
+    }
     void draw(Graphics g) {
         int oldX = x, oldY = y;
-        if(!this.enemy) {
-            this.determineDirection();
-        }
         this.move();
 
-        if (x < 0) x = 0;
-        else if (x > 800 - getImage().getWidth(null)) x = 800 - getImage().getWidth(null);
-        if (y < 0) y = 0;
-        else if (y > 600 - getImage().getHeight(null)) y = 600 - getImage().getHeight(null);
+        if (x < 0) {
+            x = 0;
+        }
+        else if (x > GameClient.WIDTH - getImage().getWidth(null)) {
+            x = GameClient.WIDTH - getImage().getWidth(null);
+        }
+        if (y < 0) {
+            y = 0;
+        }
+        else if (y > GameClient.HEIGHT - getImage().getHeight(null)) {
+            y = GameClient.HEIGHT - getImage().getHeight(null);
+        }
 
         Rectangle rec = this.getRectangle();
         for (Wall wall : GameClient.getInstance().getWalls()) {
@@ -92,40 +109,63 @@ class Tank {
             y = oldY;
         }
         if(!enemy){
+            Blood blood=GameClient.getInstance().getBlood();
+            if (blood.isLive() && rec.intersects(blood.getRectangle())){
+                this.hp = Max_Hp;
+                Tools.playAudio("revive.wav");
+                GameClient.getInstance().getBlood().setLive(false);
+            }
+
             g.setColor(Color.WHITE);
             g.fillRect(x,y-10,this.getImage().getWidth(null),10);
 
             g.setColor(Color.RED);
-            int width = Hp * this.getImage().getWidth(null) / 100;
+            int width = hp * this.getImage().getWidth(null) / Max_Hp;
             g.fillRect(x,y-10,width,10);
+
+            Image petImage = Tools.getImage("pet-camel.gif");
+            g.drawImage(petImage, this.x - petImage.getWidth(null) - DISTANCE_TO_PET
+                    , this.y, null);
         }
 
         g.drawImage(this.getImage(), this.x, this.y, null);
-
     }
 
+    private static final int DISTANCE_TO_PET = 4;
+
     Rectangle getRectangle() {
+        if(enemy) {
+            return new Rectangle(x, y, getImage().getWidth(null), getImage().getHeight(null));
+        }
+        else{
+            Image petImage = Tools.getImage("pet-camel.gif");
+            int delta = petImage.getWidth(null) + DISTANCE_TO_PET;
+            return new Rectangle(x-delta, y,
+                    getImage().getWidth(null) + delta
+                    , getImage().getHeight(null));
+
+        }
+    }
+
+    Rectangle getRectangleForHitDetection() {
         return new Rectangle(x, y, getImage().getWidth(null), getImage().getHeight(null));
     }
 
-    private boolean up;
-    private boolean down;
-    private boolean right;
-    private boolean left;
+
 
     void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_UP:
-                up = true;
+                code |= Direction.UP.code;
                 break;
             case KeyEvent.VK_DOWN:
-                down = true;
+                code |= Direction.DOWN.code;
                 break;
             case KeyEvent.VK_LEFT:
-                left = true;
+                code |= Direction.LEFT.code;
                 break;
             case KeyEvent.VK_RIGHT:
-                right = true;
+                code |= Direction.RIGHT.code;
                 break;
             case KeyEvent.VK_Z:
                 fire();
@@ -139,8 +179,8 @@ class Tank {
             case KeyEvent.VK_F2:
                 GameClient.getInstance().restart();
                 break;
-
         }
+        this.determineDirection();
     }
 
 
@@ -177,38 +217,34 @@ class Tank {
 
     private boolean stopped;
 
+    private int code;
+
     private void determineDirection() {
-        if (!up && !left && !down && !right) {
+        Direction newDirection = Direction.get(code);
+        if (newDirection == null) {
             this.stopped = true;
         } else {
-            if (up && left && !down && !right) this.direction = Direction.LEFT_UP;
-            else if (up && right && !down && !left) this.direction = Direction.RIGHT_UP;
-            else if (down && left && !up && !right) this.direction = Direction.LEFT_DOWN;
-            else if (down && right && !up && !left) this.direction = Direction.RIGHT_DOWN;
-            else if (up && !right && !down && !left) this.direction = Direction.UP;
-            else if (down && !right && !up && !left) this.direction = Direction.DOWN;
-            else if (right && !up && !down && !left) this.direction = Direction.RIGHT;
-            else if (left && !right && !down && !up) this.direction = Direction.LEFT;
+            this.direction = newDirection;
             this.stopped = false;
         }
-
     }
 
     void keyReleased(KeyEvent e) {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_UP:
-                up = false;
+                code ^= Direction.UP.code;
                 break;
             case KeyEvent.VK_DOWN:
-                down = false;
+                code ^= Direction.DOWN.code;
                 break;
             case KeyEvent.VK_LEFT:
-                left = false;
+                code ^= Direction.LEFT.code;
                 break;
             case KeyEvent.VK_RIGHT:
-                right = false;
+                code ^= Direction.RIGHT.code;
                 break;
         }
+        this.determineDirection();
     }
 
     private final Random random = new Random();
